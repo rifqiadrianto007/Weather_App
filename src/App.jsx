@@ -1,74 +1,114 @@
+import { useEffect, useState } from "react";
 import {
-    CloudSun,
-    Sun,
-    Cloud,
-    CloudRain,
-    CloudLightning,
-} from "lucide-react";
+    getCurrentWeather,
+    getForecast,
+    getCurrentWeatherByCoords,
+    getForecastByCoords,
+} from "./services/weatherApi";
+import { getWeatherIcon } from "./utils/weatherIcon";
+import {
+    getLocalDateTime,
+    formatDay,
+    formatDate,
+    formatTime,
+} from "./utils/timezone";
 
+import SearchBar from "./components/SearchBar";
 import CurrentWeather from "./components/CurrentWeather";
 import HourlyForecast from "./components/HourlyForecast";
 import DayParts from "./components/DayParts";
 import WeeklyForecast from "./components/WeeklyForecast";
 
 function App() {
+    const [city, setCity] = useState("Jakarta");
+    const [current, setCurrent] = useState(null);
+    const [forecast, setForecast] = useState(null);
+
+    async function fetchByCity(name) {
+        const c = await getCurrentWeather(name);
+        const f = await getForecast(name);
+        setCurrent(c);
+        setForecast(f);
+        setCity(name);
+    }
+
+    useEffect(() => {
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const c = await getCurrentWeatherByCoords(latitude, longitude);
+                const f = await getForecastByCoords(latitude, longitude);
+                setCurrent(c);
+                setForecast(f);
+                setCity(c.name);
+            },
+            () => fetchByCity(city)
+        );
+    }, []);
+
+    if (!current || !forecast) return null;
+
+    const localDate = getLocalDateTime(current.dt, current.timezone);
+    const CurrentIcon = getWeatherIcon(current.weather[0].main);
+
+    const hourly = forecast.list.slice(0, 6).map((item) => ({
+        time: new Date(item.dt_txt).toLocaleTimeString("en-US", { hour: "numeric" }),
+        icon: getWeatherIcon(item.weather[0].main),
+    }));
+
+    const parts = [2, 5, 7].map((i, idx) => ({
+        label: ["Morning", "Afternoon", "Evening"][idx],
+        temp: Math.round(forecast.list[i].main.temp),
+        desc: forecast.list[i].weather[0].description,
+        icon: getWeatherIcon(forecast.list[i].weather[0].main),
+    }));
+
+    const dailyMap = {};
+    forecast.list.forEach((item) => {
+        const d = new Date(item.dt_txt).toLocaleDateString("en-US", { weekday: "short" });
+        dailyMap[d] = dailyMap[d] || [];
+        dailyMap[d].push(item);
+    });
+
+    const weekly = Object.entries(dailyMap).slice(0, 7).map(([day, items]) => ({
+        day,
+        max: Math.round(Math.max(...items.map(i => i.main.temp_max))),
+        min: Math.round(Math.min(...items.map(i => i.main.temp_min))),
+        icon: getWeatherIcon(items[0].weather[0].main),
+    }));
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-sky-400 to-blue-700">
             <div className="w-275 rounded-4xl p-6 bg-linear-to-b from-sky-500 to-blue-600 text-white">
+                <SearchBar onSearch={fetchByCity} />
 
                 <div className="grid grid-cols-[420px_1fr] gap-5">
                     <CurrentWeather
-                        day="Monday"
-                        date="April 19"
-                        temp={18}
-                        description="Partly Cloudy"
-                        Icon={CloudSun}
+                        day={formatDay(localDate)}
+                        date={formatDate(localDate)}
+                        temp={Math.round(current.main.temp)}
+                        description={current.weather[0].description}
+                        Icon={CurrentIcon}
                         details={{
-                            wind: "5 km/h",
-                            humidity: "65%",
-                            pressure: "1009 mb",
-                            visibility: "5 km",
+                            wind: `${current.wind.speed} km/h`,
+                            humidity: `${current.main.humidity}%`,
+                            pressure: `${current.main.pressure} mb`,
+                            visibility: `${current.visibility / 1000} km`,
                         }}
-                        sunrise="07:24"
-                        sunset="19:15"
+                        sunrise={formatTime(getLocalDateTime(current.sys.sunrise, current.timezone))}
+                        sunset={formatTime(getLocalDateTime(current.sys.sunset, current.timezone))}
                     />
 
-                    <HourlyForecast
-                        hours={[
-                            { time: "10 AM", icon: Sun },
-                            { time: "11 AM", icon: Cloud },
-                            { time: "12 PM", icon: CloudRain },
-                            { time: "1 PM", icon: CloudRain },
-                            { time: "2 PM", icon: Cloud },
-                            { time: "3 PM", icon: Sun },
-                        ]}
-                    />
+                    <HourlyForecast hours={hourly} />
                 </div>
 
                 <div className="mt-5">
-                    <DayParts
-                        parts={[
-                            { label: "Morning", temp: 22, desc: "Light Rain", icon: CloudRain },
-                            { label: "Afternoon", temp: 24, desc: "Storm", icon: CloudLightning },
-                            { label: "Evening", temp: 19, desc: "Cloudy", icon: CloudSun },
-                        ]}
-                    />
+                    <DayParts parts={parts} />
                 </div>
 
                 <div className="mt-5">
-                    <WeeklyForecast
-                        days={[
-                            { day: "Sat", max: 25, min: 16, icon: Sun },
-                            { day: "Sun", max: 26, min: 17, icon: Cloud },
-                            { day: "Mon", max: 24, min: 15, icon: CloudRain },
-                            { day: "Tue", max: 23, min: 14, icon: Cloud },
-                            { day: "Wed", max: 25, min: 16, icon: Sun },
-                            { day: "Thu", max: 27, min: 18, icon: Sun },
-                            { day: "Fri", max: 26, min: 17, icon: Cloud },
-                        ]}
-                    />
+                    <WeeklyForecast days={weekly} />
                 </div>
-
             </div>
         </div>
     );
