@@ -54,8 +54,8 @@ function App() {
     /* ================= TIME & MODE ================= */
 
     const localDate = useMemo(
-        () => getLocalDateTime(current.dt, current.timezone),
-        [current.dt, current.timezone]
+        () => current ? getLocalDateTime(current.dt, current.timezone) : new Date(),
+        [current]
     );
 
     const night = useMemo(
@@ -65,7 +65,7 @@ function App() {
 
     /* ================= WEATHER STATE ================= */
 
-    const weatherMain = current.weather[0].main;
+    const weatherMain = current?.weather[0]?.main || "";
 
     const isStorm =
         weatherMain === "Rain" || weatherMain === "Thunderstorm";
@@ -85,27 +85,29 @@ function App() {
 
     const hourly = useMemo(
         () =>
-            forecast.list.slice(0, 6).map((item) => ({
+            forecast?.list ? forecast.list.slice(0, 6).map((item) => ({
                 time: new Date(item.dt_txt).toLocaleTimeString("en-US", {
                     hour: "numeric",
                 }),
                 icon: getWeatherIcon(item.weather[0].main),
-            })),
-        [forecast.list]
+            })) : [],
+        [forecast]
     );
 
     const parts = useMemo(
         () =>
-            [2, 5, 7].map((i, idx) => ({
+            forecast?.list ? [2, 5, 7].map((i, idx) => ({
                 label: ["Morning", "Afternoon", "Evening"][idx],
                 temp: Math.round(forecast.list[i].main.temp),
                 desc: forecast.list[i].weather[0].description,
                 icon: getWeatherIcon(forecast.list[i].weather[0].main),
-            })),
-        [forecast.list]
+            })) : [],
+        [forecast]
     );
 
     const weekly = useMemo(() => {
+        if (!forecast?.list) return [];
+
         const map = {};
         forecast.list.forEach((item) => {
             const d = new Date(item.dt_txt).toLocaleDateString("en-US", {
@@ -119,11 +121,11 @@ function App() {
             .slice(0, 7)
             .map(([day, items]) => ({
                 day,
-                max: Math.round(Math.max(...items.map(i => i.main.temp_max))),
-                min: Math.round(Math.min(...items.map(i => i.main.temp_min))),
+                max: Math.round(Math.max(...items.map((i) => i.main.temp_max))),
+                min: Math.round(Math.min(...items.map((i) => i.main.temp_min))),
                 icon: getWeatherIcon(items[0].weather[0].main),
             }));
-    }, [forecast.list]);
+    }, [forecast]);
 
     if (!current || !forecast) {
         return (
