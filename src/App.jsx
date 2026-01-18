@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 import {
     getCurrentWeather,
     getForecast,
