@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     getCurrentWeather,
     getForecast,
@@ -28,6 +27,8 @@ function App() {
     const [current, setCurrent] = useState(null);
     const [forecast, setForecast] = useState(null);
 
+    /* ================= FETCHING ================= */
+
     async function fetchByCity(name) {
         const c = await getCurrentWeather(name);
         const f = await getForecast(name);
@@ -50,72 +51,63 @@ function App() {
         );
     }, []);
 
-    if (!current || !forecast) {
-        return (
-            <div className="min-h-screen flex items-center justify-center text-white">
-                Loading weather...
-            </div>
-        );
-    }
+    /* ================= TIME & MODE ================= */
 
     const localDate = useMemo(
-        () => getLocalDateTime(current.dt, current.timezone),
-        [current.dt, current.timezone]
+        () => current ? getLocalDateTime(current.dt, current.timezone) : new Date(),
+        [current]
     );
+
     const night = useMemo(
         () => isNightTime(localDate),
         [localDate]
     );
 
-    const weatherMain = current.weather[0].main;
+    /* ================= WEATHER STATE ================= */
+
+    const weatherMain = current?.weather[0]?.main || "";
+
     const isStorm =
         weatherMain === "Rain" || weatherMain === "Thunderstorm";
 
-    let particleType = null;
-    if (weatherMain === "Rain" || weatherMain === "Thunderstorm") {
-        particleType = "rain";
-    }
-    if (weatherMain === "Snow") {
-        particleType = "snow";
-    }
+    const particleType = useMemo(() => {
+        if (weatherMain === "Snow") return "snow";
+        if (weatherMain === "Rain" || weatherMain === "Thunderstorm") return "rain";
+        return null;
+    }, [weatherMain]);
 
     const CurrentIcon = useMemo(
         () => getWeatherIcon(weatherMain),
         [weatherMain]
     );
 
+    /* ================= DATA MAPPING ================= */
+
     const hourly = useMemo(
         () =>
-            forecast.list.slice(0, 6).map((item) => ({
+            forecast?.list ? forecast.list.slice(0, 6).map((item) => ({
                 time: new Date(item.dt_txt).toLocaleTimeString("en-US", {
                     hour: "numeric",
                 }),
                 icon: getWeatherIcon(item.weather[0].main),
-            })),
-        [forecast.list]
+            })) : [],
+        [forecast]
     );
 
     const parts = useMemo(
         () =>
-            [2, 5, 7].map((i, idx) => ({
+            forecast?.list ? [2, 5, 7].map((i, idx) => ({
                 label: ["Morning", "Afternoon", "Evening"][idx],
                 temp: Math.round(forecast.list[i].main.temp),
                 desc: forecast.list[i].weather[0].description,
                 icon: getWeatherIcon(forecast.list[i].weather[0].main),
-            })),
-        [forecast.list]
+            })) : [],
+        [forecast]
     );
 
-    const dailyMap = {};
-    forecast.list.forEach((item) => {
-        const d = new Date(item.dt_txt).toLocaleDateString("en-US", {
-            weekday: "short",
-        });
-        dailyMap[d] = dailyMap[d] || [];
-        dailyMap[d].push(item);
-    });
-
     const weekly = useMemo(() => {
+        if (!forecast?.list) return [];
+
         const map = {};
         forecast.list.forEach((item) => {
             const d = new Date(item.dt_txt).toLocaleDateString("en-US", {
@@ -129,10 +121,89 @@ function App() {
             .slice(0, 7)
             .map(([day, items]) => ({
                 day,
-                max: Math.round(Math.max(...items.map(i => i.main.temp_max))),
-                min: Math.round(Math.min(...items.map(i => i.main.temp_min))),
+                max: Math.round(Math.max(...items.map((i) => i.main.temp_max))),
+                min: Math.round(Math.min(...items.map((i) => i.main.temp_min))),
                 icon: getWeatherIcon(items[0].weather[0].main),
             }));
-    }, [forecast.list]);
+    }, [forecast]);
+
+    if (!current || !forecast) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-white">
+                Loading weather...
+            </div>
+        );
+    }
+
+    /* ================= UI ================= */
+
+    return (
+        <div
+            className={`min-h-screen w-full flex items-center justify-center transition-colors duration-700
+        ${night
+                    ? "bg-linear-to-br from-slate-900 via-blue-900 to-indigo-900"
+                    : "bg-linear-to-br from-sky-400 to-blue-700"
+                }`}
+        >
+            <div
+                className={`relative w-full max-w-275 mx-auto rounded-4xl p-4 sm:p-6 text-white overflow-hidden transition-colors duration-700
+          ${night
+                        ? "bg-linear-to-b from-blue-900 to-indigo-900"
+                        : "bg-linear-to-b from-sky-500 to-blue-600"
+                    }`}
+            >
+                {/* PARTICLES */}
+                <WeatherParticles type={particleType} />
+
+                {/* SEARCH */}
+                <SearchBar onSearch={fetchByCity} />
+
+                {/* TOP GRID */}
+                <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-5">
+                    <AnimatedCard key={city}>
+                        <CurrentWeather
+                            day={formatDay(localDate)}
+                            date={formatDate(localDate)}
+                            temp={Math.round(current.main.temp)}
+                            description={current.weather[0].description}
+                            Icon={CurrentIcon}
+                            storm={isStorm}
+                            details={{
+                                wind: `${current.wind.speed} km/h`,
+                                humidity: `${current.main.humidity}%`,
+                                pressure: `${current.main.pressure} mb`,
+                                visibility: `${current.visibility / 1000} km`,
+                            }}
+                            sunrise={formatTime(
+                                getLocalDateTime(current.sys.sunrise, current.timezone)
+                            )}
+                            sunset={formatTime(
+                                getLocalDateTime(current.sys.sunset, current.timezone)
+                            )}
+                        />
+                    </AnimatedCard>
+
+                    <AnimatedCard delay={0.1}>
+                        <HourlyForecast hours={hourly} />
+                    </AnimatedCard>
+                </div>
+
+                {/* MIDDLE */}
+                <AnimatedCard delay={0.2}>
+                    <div className="mt-5">
+                        <DayParts parts={parts} />
+                    </div>
+                </AnimatedCard>
+
+                {/* BOTTOM */}
+                <AnimatedCard delay={0.3}>
+                    <div className="mt-5">
+                        <WeeklyForecast days={weekly} />
+                    </div>
+                </AnimatedCard>
+            </div>
+        </div>
+    );
+}
 
 export default App;
