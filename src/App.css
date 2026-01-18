@@ -1,24 +1,35 @@
 @import "tailwindcss";
 
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  padding: 0;
   font-family: "Poppins", sans-serif;
   background: linear-gradient(180deg, #4facfe, #00c6fb);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .app {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  height: 100vh;
+  width: 100%;
+  max-width: 1280px;
+  min-height: 100vh;
+  gap: 20px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .logo {

@@ -12,8 +12,8 @@ export default function SearchBar({ onSearch }) {
     };
 
     return (
-        <div className="mb-5 flex items-center gap-3">
-            <div className="flex items-center bg-white/20 rounded-full px-4 py-2 w-65">
+        <div className="mb-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center bg-white/20 rounded-full px-4 py-2 w-full sm:w-65">
                 <Search size={16} className="opacity-70" />
                 <input
                     type="text"

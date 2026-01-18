@@ -1,10 +1,10 @@
 export default function WeeklyForecast({ days }) {
     return (
-        <div className="grid grid-cols-7 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-7 lg:overflow-visible">
             {days.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                    <div key={index} className="rounded-2xl bg-white/20 p-4 h-37.5 flex flex-col items-center justify-between">
+                    <div key={index} className="rmin-w-[110px] rounded-2xl bg-white/20 p-4 h-37.5 flex flex-col items-center justify-between">
                         <p className="text-xs uppercase tracking-wide opacity-80">
                             {item.day}
                         </p>

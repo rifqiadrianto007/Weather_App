@@ -26,7 +26,7 @@ export default function CurrentWeather({
                 <p className="text-sm opacity-80 mt-1">{date}</p>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <p className="text-[52px] font-light leading-none">
                         {temp}°
@@ -35,7 +35,7 @@ export default function CurrentWeather({
                         {description}
                     </p>
                 </div>
-                <Icon size={96} strokeWidth={1.25} className="opacity-90" />
+                <Icon size={80} className="opacity-90 sm:size-24" />
             </div>
 
             <div className="grid grid-cols-2 gap-y-2 text-[11px] opacity-80">

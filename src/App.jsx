@@ -11,6 +11,7 @@ import {
     formatDay,
     formatDate,
     formatTime,
+    isNightTime,
 } from "./utils/timezone";
 
 import SearchBar from "./components/SearchBar";
@@ -48,7 +49,10 @@ function App() {
 
     if (!current || !forecast) return null;
 
+    /* ⏰ TIMEZONE-BASED TIME */
     const localDate = getLocalDateTime(current.dt, current.timezone);
+    const night = isNightTime(localDate);
+
     const CurrentIcon = getWeatherIcon(current.weather[0].main);
 
     const hourly = forecast.list.slice(0, 6).map((item) => ({
@@ -78,11 +82,23 @@ function App() {
     }));
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-sky-400 to-blue-700">
-            <div className="w-275 rounded-4xl p-6 bg-linear-to-b from-sky-500 to-blue-600 text-white">
+        <div
+            className={`min-h-screen w-full flex items-center justify-center transition-colors duration-700
+                ${night
+                    ? "bg-linear-to-br from-slate-900 via-blue-900 to-indigo-900"
+                    : "bg-linear-to-br from-sky-400 to-blue-700"
+                }`}
+        >
+            <div
+                className={`w-full max-w-275 mx-auto rounded-4xl p-4 sm:p-6 text-white transition-colors duration-700
+                    ${night
+                        ? "bg-linear-to-b from-blue-900 to-indigo-900"
+                        : "bg-linear-to-b from-sky-500 to-blue-600"
+                    }`}
+            >
                 <SearchBar onSearch={fetchByCity} />
 
-                <div className="grid grid-cols-[420px_1fr] gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-5">
                     <CurrentWeather
                         day={formatDay(localDate)}
                         date={formatDate(localDate)}

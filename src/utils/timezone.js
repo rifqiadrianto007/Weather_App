@@ -19,3 +19,9 @@ export function formatTime(date) {
     minute: "2-digit",
   });
 }
+
+// night mode detection
+export function isNightTime(date) {
+  const hour = date.getHours();
+  return hour >= 18 || hour < 6;
+}
