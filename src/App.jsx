@@ -54,8 +54,8 @@ function App() {
     /* ================= TIME & MODE ================= */
 
     const localDate = useMemo(
-        () => current ? getLocalDateTime(current.dt, current.timezone) : new Date(),
-        [current]
+        () => getLocalDateTime(current.dt, current.timezone),
+        [current.dt, current.timezone]
     );
 
     const night = useMemo(
@@ -65,7 +65,7 @@ function App() {
 
     /* ================= WEATHER STATE ================= */
 
-    const weatherMain = current?.weather[0]?.main || "";
+    const weatherMain = current.weather[0].main;
 
     const isStorm =
         weatherMain === "Rain" || weatherMain === "Thunderstorm";
@@ -85,29 +85,27 @@ function App() {
 
     const hourly = useMemo(
         () =>
-            forecast?.list ? forecast.list.slice(0, 6).map((item) => ({
+            forecast.list.slice(0, 6).map((item) => ({
                 time: new Date(item.dt_txt).toLocaleTimeString("en-US", {
                     hour: "numeric",
                 }),
                 icon: getWeatherIcon(item.weather[0].main),
-            })) : [],
-        [forecast]
+            })),
+        [forecast.list]
     );
 
     const parts = useMemo(
         () =>
-            forecast?.list ? [2, 5, 7].map((i, idx) => ({
+            [2, 5, 7].map((i, idx) => ({
                 label: ["Morning", "Afternoon", "Evening"][idx],
                 temp: Math.round(forecast.list[i].main.temp),
                 desc: forecast.list[i].weather[0].description,
                 icon: getWeatherIcon(forecast.list[i].weather[0].main),
-            })) : [],
-        [forecast]
+            })),
+        [forecast.list]
     );
 
     const weekly = useMemo(() => {
-        if (!forecast?.list) return [];
-
         const map = {};
         forecast.list.forEach((item) => {
             const d = new Date(item.dt_txt).toLocaleDateString("en-US", {
@@ -121,11 +119,11 @@ function App() {
             .slice(0, 7)
             .map(([day, items]) => ({
                 day,
-                max: Math.round(Math.max(...items.map((i) => i.main.temp_max))),
-                min: Math.round(Math.min(...items.map((i) => i.main.temp_min))),
+                max: Math.round(Math.max(...items.map(i => i.main.temp_max))),
+                min: Math.round(Math.min(...items.map(i => i.main.temp_min))),
                 icon: getWeatherIcon(items[0].weather[0].main),
             }));
-    }, [forecast]);
+    }, [forecast.list]);
 
     if (!current || !forecast) {
         return (
@@ -154,6 +152,22 @@ function App() {
             >
                 {/* PARTICLES */}
                 <WeatherParticles type={particleType} />
+
+                {/* HEADER INFO: CITY + DATETIME */}
+                <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <h2 className="text-xl font-light tracking-wide">
+                            {city}
+                        </h2>
+                        <p className="text-sm opacity-80">
+                            {formatDay(localDate)}, {formatDate(localDate)}
+                        </p>
+                    </div>
+
+                    <p className="text-sm opacity-80">
+                        Local time: <span className="font-medium">{formatTime(localDate)}</span>
+                    </p>
+                </div>
 
                 {/* SEARCH */}
                 <SearchBar onSearch={fetchByCity} />
