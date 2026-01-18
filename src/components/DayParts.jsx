@@ -1,28 +1,30 @@
-import { CloudRain, CloudLightning, Moon } from "lucide-react";
-
-export default function DayParts() {
+export default function DayParts({ parts }) {
     return (
-        <div className="dayparts">
-            <div className="card">
-                <h4>MORNING</h4>
-                <CloudRain />
-                <strong>22°C</strong>
-                <span>Light Rain</span>
-            </div>
+        <div className="grid grid-cols-3 gap-5">
+            {parts.map((part, index) => {
+                const Icon = part.icon;
 
-            <div className="card">
-                <h4>AFTERNOON</h4>
-                <CloudLightning />
-                <strong>24°C</strong>
-                <span>Thunderstorm</span>
-            </div>
+                return (
+                    <div
+                        key={index}
+                        className="rounded-3xl bg-white/20 p-5 h-45 flex flex-col items-center justify-between"
+                    >
+                        <h4 className="text-xs uppercase tracking-wider opacity-80">
+                            {part.label}
+                        </h4>
 
-            <div className="card">
-                <h4>EVENING</h4>
-                <Moon />
-                <strong>19°C</strong>
-                <span>Partly Cloudy</span>
-            </div>
+                        <Icon size={40} strokeWidth={1.4} className="opacity-90" />
+
+                        <p className="text-[32px] font-light">
+                            {part.temp}°
+                        </p>
+
+                        <p className="text-[11px] opacity-80">
+                            {part.desc}
+                        </p>
+                    </div>
+                );
+            })}
         </div>
     );
 }
