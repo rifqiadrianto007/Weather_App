@@ -1,35 +1,31 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import SearchBar from "./components/SearchBar";
+import WeatherCard from "./components/WeatherCard";
+import ForecastList from "./components/ForecastList";
+import { getWeather, getForecast } from "./services/weatherApi";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [weather, setWeather] = useState(null);
+    const [forecast, setForecast] = useState(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const handleSearch = async (city) => {
+        const weatherData = await getWeather(city);
+        const forecastData = await getForecast(city);
+        setWeather(weatherData);
+        setForecast(forecastData);
+    };
+
+    return (
+        <div className="app">
+            <div className="weather-container">
+                <SearchBar onSearch={handleSearch} />
+                <WeatherCard data={weather} />
+                <ForecastList data={forecast} />
+            </div>
+        </div>
+
+    );
 }
 
-export default App
+export default App;
