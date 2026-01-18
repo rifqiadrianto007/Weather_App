@@ -1,6 +1,7 @@
-export default function HourlyForecast({ hours }) {
+import { memo } from "react";
+export default memo(function HourlyForecast({ hours }) {
     return (
-        <div className="rounded-3xl bg-white/20 p-6 h-[280px] flex flex-col justify-between">
+        <div className="rounded-3xl bg-white/20 p-6 h-70 flex flex-col justify-between">
             <h3 className="text-sm uppercase tracking-wide opacity-80">
                 Hourly Forecast
             </h3>
@@ -18,4 +19,4 @@ export default function HourlyForecast({ hours }) {
             </div>
         </div>
     );
-}
+});

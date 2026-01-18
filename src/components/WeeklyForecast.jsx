@@ -1,4 +1,5 @@
-export default function WeeklyForecast({ days }) {
+import { memo } from "react";
+export default memo(function WeeklyForecast({ days }) {
     return (
         <div className="flex gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-7 lg:overflow-visible">
             {days.map((item, index) => {
@@ -18,4 +19,4 @@ export default function WeeklyForecast({ days }) {
             })}
         </div>
     );
-}
+});

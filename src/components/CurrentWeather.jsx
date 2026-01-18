@@ -6,6 +6,7 @@ import {
     Sunrise,
     Sunset,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function CurrentWeather({
     day,
@@ -16,6 +17,7 @@ export default function CurrentWeather({
     details,
     sunrise,
     sunset,
+    storm,
 }) {
     return (
         <div className="rounded-3xl bg-white/20 p-6 h-70 flex flex-col justify-between">
@@ -35,7 +37,21 @@ export default function CurrentWeather({
                         {description}
                     </p>
                 </div>
-                <Icon size={80} className="opacity-90 sm:size-24" />
+
+                <motion.div
+                    animate={
+                        storm
+                            ? { x: [0, -2, 2, -2, 2, 0] }
+                            : { y: [0, -6, 0] }
+                    }
+                    transition={{
+                        duration: storm ? 0.4 : 3,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                >
+                    <Icon size={96} strokeWidth={1.25} className="opacity-90" />
+                </motion.div>
             </div>
 
             <div className="grid grid-cols-2 gap-y-2 text-[11px] opacity-80">

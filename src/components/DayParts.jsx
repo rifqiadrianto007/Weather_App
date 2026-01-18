@@ -1,4 +1,5 @@
-export default function DayParts({ parts }) {
+import { memo } from "react";
+export default memo(function DayParts({ parts }) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {parts.map((part, index) => {
@@ -16,4 +17,4 @@ export default function DayParts({ parts }) {
             })}
         </div>
     );
-}
+});
